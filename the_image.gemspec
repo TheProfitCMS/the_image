@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
   spec.email         = ["zykin-ilya@ya.ru"]
   spec.summary       = %q{TheImage - helpers for image manipulations}
   spec.description   = %q{Helpers for image manipulations}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/TheProfitCMS/the_image"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0")
