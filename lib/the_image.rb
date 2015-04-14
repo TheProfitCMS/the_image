@@ -141,24 +141,24 @@ module TheImage
 
     x0 = case align
       when :center
-        ((w0 - fw) / 2).to_i
+        ((w0 - fw) / 2)
       when :right
-        (w0 - fw).to_i
+        (w0 - fw)
       else
         0
-    end
+    end.to_i
 
     y0 = case valign
       when :center
-        ((h0 - fh) / 2).to_i
+        ((h0 - fh) / 2)
       when :bottom
-        (h0 - fh).to_i
+        (h0 - fh)
       else
         0
-    end
+    end.to_i
 
     crop_cmd   = "#{ fw }x#{ fh }+#{ x0 }+#{ y0 } #{ repage }"
-    resize_cmd = "#{ width }x#{ height }!"
+    resize_cmd = "#{ width.to_i }x#{ height.to_i }!"
 
     image_log(image, [ crop_cmd, resize_cmd ])
 
@@ -181,7 +181,8 @@ module TheImage
     scale_h = 1.0/(image.height.to_f/height.to_f)
     scale   = scale_w > scale_h ? scale_w : scale_h
 
-    ratio = scale_w/scale_h
+    # original image ratio
+    ratio = image.width.to_f/image.height.to_f
 
     valign = :center
     valign = :top if ratio >= v_ratio_min && ratio <= v_ratio_max
