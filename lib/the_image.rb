@@ -121,14 +121,14 @@ module TheImage
     end
   end
 
-  # get rectangle form image
+  # get rectangle from image
   def to_rect image, width, height, opts = {}
     default_opts = { valign: :center, align: :center, repage: true }
     opts = default_opts.merge(opts)
 
-    repage = '+repage' if opts[:repage]
     align  = opts[:align].to_sym
     valign = opts[:valign].to_sym
+    repage = '+repage' if opts[:repage]
 
     w0, h0 = image[:width].to_f, image[:height].to_f
     w1, h1 = width.to_f, height.to_f
@@ -141,18 +141,18 @@ module TheImage
 
     x0 = case align
       when :center
-        ((w0 - fw) / 2)
+        (w0 - fw) / 2
       when :right
-        (w0 - fw)
+        w0 - fw
       else
         0
     end.to_i
 
     y0 = case valign
       when :center
-        ((h0 - fh) / 2)
+        (h0 - fh) / 2
       when :bottom
-        (h0 - fh)
+        h0 - fh
       else
         0
     end.to_i
@@ -227,6 +227,8 @@ module TheImage
     w = (w.to_f * scale).to_i
     h = (h.to_f * scale).to_i
 
-    image.crop "#{ w }x#{ h }+#{ x0 }+#{ y0 } #{ repage }"
+    crop_cmd = "#{ w }x#{ h }+#{ x0 }+#{ y0 } #{ repage }"
+    image_log(image, [ crop_cmd ])
+    image.crop crop_cmd
   end
 end
