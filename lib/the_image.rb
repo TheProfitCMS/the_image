@@ -2,12 +2,16 @@ require_relative 'the_image/version'
 require 'mini_magick'
 
 module TheImage
+  def the_image_logging
+    false
+  end
+
   def chmod_mask
     0644
   end
 
   # HELPERS
-  def image_open path
+  def open_image path
     ::MiniMagick::Image.open path
   end
 
@@ -48,7 +52,7 @@ module TheImage
     src    = opts[:src]
     dest   = opts[:dest]
     format = opts[:format]
-    image  = image_open src
+    image  = open_image src
 
     image.format(format.to_s.downcase) if format
     image = instance_exec(image, opts, &block)
@@ -119,9 +123,10 @@ module TheImage
 
   # get rectangle form image
   def to_rect image, width, height, opts = {}
-    default_opts = { valign: :center, align: :center }
+    default_opts = { valign: :center, align: :center, repage: true }
     opts = default_opts.merge(opts)
 
+    repage = '+repage' if opts[:repage]
     align  = opts[:align].to_sym
     valign = opts[:valign].to_sym
 
@@ -152,14 +157,26 @@ module TheImage
         0
     end
 
-    image.crop   "#{ fw }x#{ fh }+#{ x0 }+#{ y0 } +repage"
-    image.resize "#{ width }x#{ height }!"
+    crop_cmd   = "#{ fw }x#{ fh }+#{ x0 }+#{ y0 } #{ repage }"
+    resize_cmd = "#{ width }x#{ height }!"
+
+    image_log(image, [ crop_cmd, resize_cmd ])
+
+    image.crop   crop_cmd
+    image.resize resize_cmd
   end
 
   # get rectangle from image from middle or top
   # `v_ratio_min` and `v_ratio_max` define W/H ratio
   # when we have to get middle or top part of image
-  def smart_rect image, width, height, v_ratio_min = 0.625, v_ratio_max = 0.80
+  def smart_rect image, width, height, opts = {}
+    default_opts = { v_ratio_min: 0.625, v_ratio_max: 0.80, repage: true }
+    opts = default_opts.merge(opts)
+
+    repage      = opts[:repage]
+    v_ratio_min = opts[:v_ratio_min]
+    v_ratio_max = opts[:v_ratio_max]
+
     scale_w = 1.0/(image.width.to_f/width.to_f)
     scale_h = 1.0/(image.height.to_f/height.to_f)
     scale   = scale_w > scale_h ? scale_w : scale_h
@@ -172,8 +189,21 @@ module TheImage
     new_w = image.width*scale
     new_h = image.height*scale
 
-    image = to_rect image, new_w, new_h,  { valign: :center, align: :center }
-    image = to_rect image, width, height, { valign: valign,  align: :center }
+    image = to_rect image, new_w, new_h,  { valign: :center, align: :center, repage: repage }
+    image = to_rect image, width, height, { valign: valign,  align: :center, repage: repage }
+  end
+
+  def image_log image, cmds
+    if the_image_logging
+      puts '*'*30
+      puts "Image #{ image.width }x#{ image.height }"
+
+      cmds.each do |cmd|
+        puts cmd
+      end
+
+      puts '*'*30
+    end
   end
 
   # just to square
@@ -183,13 +213,19 @@ module TheImage
 
   # scale = original_iamge[:width].to_f / image_on_screen[:width].to_f
   # usually scale should be 1
-  def crop image, x0 = 0, y0 = 0, w = 100, h = 100, scale = 1
+  def crop image, x0 = 0, y0 = 0, w = 100, h = 100, opts = {}
+    default_opts = { scale: 1, repage: true }
+    opts = default_opts.merge(opts)
+
+    scale  = opts[:scale]
+    repage = '+repage' if opts[:repage]
+
     x0 = (x0.to_f * scale).to_i
     y0 = (y0.to_f * scale).to_i
 
     w = (w.to_f * scale).to_i
     h = (h.to_f * scale).to_i
 
-    image.crop "#{ w }x#{ h }+#{ x0 }+#{ y0 } +repage"
+    image.crop "#{ w }x#{ h }+#{ x0 }+#{ y0 } #{ repage }"
   end
 end
