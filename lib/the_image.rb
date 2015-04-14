@@ -152,7 +152,7 @@ module TheImage
         0
     end
 
-    image.crop   "#{ fw }x#{ fh }+#{ x0 }+#{ y0 }"
+    image.crop   "#{ fw }x#{ fh }+#{ x0 }+#{ y0 } +repage"
     image.resize "#{ width }x#{ height }!"
   end
 
@@ -190,6 +190,6 @@ module TheImage
     w = (w.to_f * scale).to_i
     h = (h.to_f * scale).to_i
 
-    image.crop "#{ w }x#{ h }+#{ x0 }+#{ y0 }"
+    image.crop "#{ w }x#{ h }+#{ x0 }+#{ y0 } +repage"
   end
 end
